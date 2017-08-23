@@ -3,6 +3,7 @@ package com.uniquid.tank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Set;
@@ -44,6 +45,8 @@ public class Main {
 	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class.getName());
 
 	private static final String APPCONFIG_PROPERTIES = "/appconfig.properties";
+	
+	private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 	public static void main(String[] args) throws Exception {
 		
@@ -85,9 +88,9 @@ public class Main {
 		
 		// Read chain file
 		File userChainFile = appSettings.getUserChainFile();
-
+		
 		// Machine name
-		String machineName = appSettings.getMQTTTopic();
+		String machineName = "JTank" + getRandomName();
 		
 		// Seed backup file
 		File seedFile = appSettings.getSeedFile();
@@ -98,15 +101,7 @@ public class Main {
 		RegisterFactory registerFactory = new SQLiteRegisterFactory(appSettings.getDBUrl());
 		
 		//
-		// 2 Create connector: we choose the MQTTConnector implementation
-		//
-		final Connector mqttProviderConnector = new MQTTConnector.Builder()
-				.set_broker(appSettings.getMQTTBroker())
-				.set_topic(appSettings.getMQTTTopic())
-				.build();
-		
-		//
-		// 3 start to construct an UniquidNode...
+		// 2 start to construct an UniquidNode...
 		//
 		final UniquidNode uniquidNode;
 		
@@ -126,6 +121,8 @@ public class Main {
 
 			// fetch creation time
 			final int creationTime = (Integer) readData[1];
+			
+			machineName = (String) readData[2];
 			
 			// now we build an UniquidNode with the data read from seed file: we choose the UniquidNodeImpl
 			// implementation
@@ -164,7 +161,7 @@ public class Main {
 			String mnemonics = Utils.join(seed.getMnemonicCode());
 			
 			// we prepare the data to save for seedUtils
-			Object[] saveData = new Object[] {mnemonics, creationTime};
+			Object[] saveData = new Object[] {mnemonics, creationTime, machineName};
 			
 			// we construct a seedutils
 			SeedUtils seedUtils = new SeedUtils(seedFile);
@@ -175,7 +172,7 @@ public class Main {
 		}
 		
 		//
-		// 3 ...we finished to build an UniquidNode
+		// 2 ...we finished to build an UniquidNode
 		// 
 		
 		// We register a callback on the uniquidNode that allow us to be triggered when some events happens
@@ -275,6 +272,14 @@ public class Main {
 
 		});
 		
+		//
+		// 3 Create connector: we choose the MQTTConnector implementation
+		//
+		final Connector mqttProviderConnector = new MQTTConnector.Builder()
+				.set_broker(appSettings.getMQTTBroker())
+				.set_topic(machineName)
+				.build();
+		
 		// 
 		// 4 Create UniquidSimplifier that wraps registerFactory, connector and uniquidnode
 		final UniquidSimplifier simplifier = new UniquidSimplifier(registerFactory, mqttProviderConnector, uniquidNode);
@@ -309,6 +314,21 @@ public class Main {
 		
 		LOGGER.info("Exiting");
 		
+	}
+	
+	public static String getRandomName() {
+		
+		SecureRandom random = new SecureRandom();
+		
+		int len = 12;
+
+		StringBuilder sb = new StringBuilder(len);
+		for (int i = 0; i < len; i++) {
+			sb.append(AB.charAt(random.nextInt(AB.length())));
+		}
+		
+		return sb.toString();
+
 	}
 
 }
