@@ -14,7 +14,6 @@ import com.uniquid.settings.exception.SettingValidationException;
 import com.uniquid.settings.exception.UnknownSettingException;
 import com.uniquid.settings.model.Setting;
 import com.uniquid.settings.model.AbstractSettings;
-import com.uniquid.settings.validator.GreaterThan;
 import com.uniquid.settings.validator.NotEmpty;
 
 public class TankSettings extends AbstractSettings {
@@ -31,25 +30,25 @@ public class TankSettings extends AbstractSettings {
 			"providerWalletFile",
 			"Provider Wallet File",
 			"Description", 
-			"", new NotEmpty());
+			"provider.wallet", new NotEmpty());
 	
 	public static final Setting USERWALLET_FILE = new Setting(
 			"userWalletFile",
 			"User Wallet File",
 			"Description", 
-			"", new NotEmpty());
+			"user.wallet", new NotEmpty());
 	
 	public static final Setting CHAIN_FILE = new Setting(
 			"chainFile",
 			"User Wallet File",
 			"Description", 
-			"", new NotEmpty());
+			"chain.spvchain", new NotEmpty());
 	
 	public static final Setting USER_CHAIN_FILE = new Setting(
 			"userChainFile",
 			"User Wallet File",
 			"Description", 
-			"", new NotEmpty());
+			"userchain.spvchain", new NotEmpty());
 	
 	public static final Setting MQTT_TOPIC = new Setting(
 			"mqtt.topic",
@@ -67,25 +66,13 @@ public class TankSettings extends AbstractSettings {
 			"db.url",
 			"User Wallet File",
 			"Description", 
-			"jdbc:sqlite:/home/giuseppe/dev/imprinter/imprinter.db", new NotEmpty());
+			"jdbc:sqlite:imprinter.db", new NotEmpty());
 	
 	public static final Setting AUTORECOVERY_ENABLE = new Setting(
 			"autorecovery.enable",
 			"Auto Recovery enable",
 			"Auto Recovery enable",
 			Boolean.FALSE);
-	
-	public static final Setting AUTORECOVERY_THRESHOLD = new Setting(
-			"autorecovery.threshold",
-			"Autorecovery threshold in minutes",
-			"Autorecovery threshold in minutes",
-			5);
-	
-	public static final Setting INSIGHTAPI_URL = new Setting(
-			"insightapi.url",
-			"Insight api url",
-			"Insight api url",
-			"http://explorer.uniquid.co:3001");
 	
 	public static final Setting SEED_FILE = new Setting(
 			"seedFile",
@@ -185,18 +172,6 @@ public class TankSettings extends AbstractSettings {
 	public boolean isAutorecoveryEnable() {
 		
 		return getAsBoolean(AUTORECOVERY_ENABLE);
-		
-	}
-	
-	public int getAutorecoveryThreshold() {
-		
-		return getAsInteger(AUTORECOVERY_THRESHOLD);
-		
-	}
-	
-	public String getInsightApiUrl() {
-		
-		return getAsString(INSIGHTAPI_URL);
 		
 	}
 	

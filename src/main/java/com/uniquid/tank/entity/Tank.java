@@ -6,6 +6,9 @@ import java.util.TimerTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/**
+ * The Tank simulates a liquid container that have an input faucet and an output faucet.
+ */
 public class Tank {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tank.class);
