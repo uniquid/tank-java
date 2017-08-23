@@ -22,10 +22,12 @@ import com.uniquid.core.connector.mqtt.AnnouncerProviderRequest;
 import com.uniquid.core.connector.mqtt.MQTTConnector;
 import com.uniquid.core.connector.mqtt.MQTTUserClient;
 import com.uniquid.core.impl.UniquidSimplifier;
+import com.uniquid.node.UniquidNode;
 import com.uniquid.node.UniquidNodeState;
 import com.uniquid.node.impl.UniquidNodeImpl;
 import com.uniquid.node.impl.UniquidNodeImpl.Builder;
 import com.uniquid.node.listeners.UniquidNodeEventListener;
+import com.uniquid.register.RegisterFactory;
 import com.uniquid.register.impl.sql.SQLiteRegisterFactory;
 import com.uniquid.register.provider.ProviderChannel;
 import com.uniquid.register.user.UserChannel;
@@ -90,30 +92,48 @@ public class Main {
 		// Seed backup file
 		File seedFile = appSettings.getSeedFile();
 		
-		// Create Register Factory
-		SQLiteRegisterFactory registerFactory = new SQLiteRegisterFactory(appSettings.getDBUrl());
+		//
+		// 1 Create Register Factory: we choose the SQLiteRegisterFactory implementation.
+		//
+		// Please note that the SQLiteRegisterFactory implementation requires that the connection string refers
+		// to a sqlite database file that exists on disk! The default value "tank.db" is relative to the current
+		// running thread. Copy the tank.db file inside the resources folder to a location and update the
+		// appropriate connection string!
+		//
+		RegisterFactory registerFactory = new SQLiteRegisterFactory(appSettings.getDBUrl());
 		
-		// Now start to construct an UniquidNode...
-		final UniquidNodeImpl uniquidNode;
+		//
+		// 2 Create connector: we choose the MQTTConnector implementation
+		//
+		final Connector mqttProviderConnector = new MQTTConnector.Builder()
+				.set_broker(appSettings.getMQTTBroker())
+				.set_topic(appSettings.getMQTTTopic())
+				.build();
 		
-		// ... if the seed file exists, then we read it and decrypt the seed and then we create the node with
-		// the mnemonics inside it
-		// otherwise we create a new node (build with random seed) and backup the seed file
+		//
+		// 3 start to construct an UniquidNode...
+		//
+		final UniquidNode uniquidNode;
+		
+		// ... if the seed file exists then we use the SeedUtils to open it and decrypt its content: we can extract the
+		// mnemonic string and creationtime to restore the node; otherwise we create a new node initialized with a
+		// random seed and then we use a SeedUtils to perform an encrypted backup of the seed
 		if (seedFile.exists() && !seedFile.isDirectory()) {
 			
-			// create a seed utils
+			// create a SeedUtils (the wrapper that is able to load/read/decrypt the seed file)
 			SeedUtils seedUtils = new SeedUtils(seedFile);
 			
-			// decrypt and read data
+			// decrypt the content with the password read from the application setting properties
 			Object[] readData = seedUtils.readData(appSettings.getSeedPassword());
 
-			// fetch mnemonics
+			// fetch mnemonic string
 			final String mnemonic = (String) readData[0];
 
-			// and creation time
+			// fetch creation time
 			final int creationTime = (Integer) readData[1];
 			
-			// now build an UniquidNode with the read mnemonics and timestamp
+			// now we build an UniquidNode with the data read from seed file: we choose the UniquidNodeImpl
+			// implementation
 			uniquidNode = new UniquidNodeImpl.Builder().
 					setNetworkParameters(networkParameters).
 					setProviderFile(providerWalletFile).
@@ -126,7 +146,7 @@ public class Main {
 			
 		} else {
 		
-			// prepare the builder
+			// We create a builder with specified settings
 			Builder builder = new UniquidNodeImpl.Builder().
 					setNetworkParameters(networkParameters).
 					setProviderFile(providerWalletFile).
@@ -136,22 +156,22 @@ public class Main {
 					setRegisterFactory(registerFactory).
 					setNodeName(machineName);
 			
-			// build a node with random seed
+			// ask the builder to create a node with a random seed
 			uniquidNode = builder.build();
 			
-			// Fetch mnemonics and creation time
+			// Now we fetch from the builder the DeterministicSeed that allow us to export mnemonics and creationtime
 			DeterministicSeed seed = builder.getDeterministicSeed();
 			
+			// we save the creation time
 			long creationTime = seed.getCreationTimeSeconds();
 			
+			// we save mnemonics
 			String mnemonics = Utils.join(seed.getMnemonicCode());
 			
-			Object[] saveData = new Object[2];
+			// we prepare the data to save for seedUtils
+			Object[] saveData = new Object[] {mnemonics, creationTime};
 			
-			saveData[0] = mnemonics;
-			saveData[1] = creationTime;
-			
-			// construct a seedutils
+			// we construct a seedutils
 			SeedUtils seedUtils = new SeedUtils(seedFile);
 			
 			// now backup mnemonics encrypted on disk
@@ -159,13 +179,13 @@ public class Main {
 		
 		}
 		
-		// Create connector
-		final Connector mqttProviderConnector = new MQTTConnector.Builder()
-				.set_broker(appSettings.getMQTTBroker())
-				.set_topic(appSettings.getMQTTTopic())
-				.build();
+		//
+		// 3 ...we finished to build an UniquidNode
+		// 
 		
-		// Register inside the node a callback that allow us to be triggered when some events happens
+		// We register a callback on the uniquidNode that allow us to be triggered when some events happens
+		// Here we are only interested to receive the onNodeStateChange() event. The other methods are present
+		// because we decided to use an anonymous inner class.
 		uniquidNode.addUniquidNodeEventListener(new UniquidNodeEventListener() {
 			
 			@Override
@@ -260,15 +280,17 @@ public class Main {
 
 		});
 		
-		// Create UID Core library
+		// 
+		// 4 Create UniquidSimplifier that wraps registerFactory, connector and uniquidnode
 		final UniquidSimplifier simplifier = new UniquidSimplifier(registerFactory, mqttProviderConnector, uniquidNode);
 		
-		// Register custom function on slot 34, 35, 36
+		// 5 Register custom functions on slot 34, 35, 36
 		simplifier.addFunction(new TankFunction(), 34);
 		simplifier.addFunction(new InputFaucetFunction(), 35);
 		simplifier.addFunction(new OutputFaucetFunction(), 36);
 		
-		// start Uniquid core library: this will init the node, sync on blockchain, etc.
+		// 6 start Uniquid core library: this will init the node, sync on blockchain, and use the provided
+		// registerFactory to interact with the persistence layer
 		simplifier.start();
 		
 		// Register shutdown hook
@@ -279,7 +301,7 @@ public class Main {
 				LOGGER.info("Terminating tank");
 				try {
 
-					// tell the library to shutdown
+					// tell the library to shutdown and close all opened resources
 					simplifier.shutdown();
 
 				} catch (Exception ex) {
