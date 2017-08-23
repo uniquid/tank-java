@@ -50,12 +50,6 @@ public class TankSettings extends AbstractSettings {
 			"Description", 
 			"userchain.spvchain", new NotEmpty());
 	
-	public static final Setting MQTT_TOPIC = new Setting(
-			"mqtt.topic",
-			"User Wallet File",
-			"Description", 
-			"ImprinterTest", new NotEmpty());
-	
 	public static final Setting MQTT_BROKER = new Setting(
 			"mqtt.broker",
 			"User Wallet File",
@@ -150,12 +144,6 @@ public class TankSettings extends AbstractSettings {
 		
 		return new File(getAsString(USER_CHAIN_FILE));
 		
-	}
-	
-	public String getMQTTTopic() {
-
-		return getAsString(MQTT_TOPIC);
-
 	}
 	
 	public String getMQTTBroker() {
