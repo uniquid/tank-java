@@ -106,8 +106,8 @@ public class Main {
 		final UniquidNode uniquidNode;
 		
 		// ... if the seed file exists then we use the SeedUtils to open it and decrypt its content: we can extract the
-		// mnemonic string and creationtime to restore the node; otherwise we create a new node initialized with a
-		// random seed and then we use a SeedUtils to perform an encrypted backup of the seed
+		// mnemonic string, creationtime and name to restore the node; otherwise we create a new node initialized with a
+		// random seed and then we use a SeedUtils to perform an encrypted backup of the seed and other properties
 		if (seedFile.exists() && !seedFile.isDirectory()) {
 			
 			// create a SeedUtils (the wrapper that is able to load/read/decrypt the seed file)
@@ -175,8 +175,8 @@ public class Main {
 		// 2 ...we finished to build an UniquidNode
 		// 
 		
-		// We register a callback on the uniquidNode that allow us to be triggered when some events happens
-		// Here we are only interested to receive the onNodeStateChange() event. The other methods are present
+		// Here we register a callback on the uniquidNode that allow us to be triggered when some interesting events happens
+		// Currently we are only interested in receiving the onNodeStateChange() event. The other methods are present
 		// because we decided to use an anonymous inner class.
 		uniquidNode.addUniquidNodeEventListener(new UniquidNodeEventListener() {
 			
@@ -249,7 +249,8 @@ public class Main {
 					// If the node is ready to be imprinted...
 					if (UniquidNodeState.IMPRINTING.equals(arg0)) {
 
-						// Create a MQTTClient pointing to the broker on the UID/announce topic
+						// Create a MQTTClient pointing to the broker on the UID/announce topic and specify
+						// 0 timeout: we don't want a response.
 						final UserClient rpcClient = new MQTTUserClient(appSettings.getMQTTBroker(), "UID/announce", 0);
 						
 						// Create announce request
@@ -289,6 +290,9 @@ public class Main {
 		simplifier.addFunction(new InputFaucetFunction(), 35);
 		simplifier.addFunction(new OutputFaucetFunction(), 36);
 		
+		LOGGER.info("Staring Uniquid library with node: " + machineName);
+		
+		//
 		// 6 start Uniquid core library: this will init the node, sync on blockchain, and use the provided
 		// registerFactory to interact with the persistence layer
 		simplifier.start();
