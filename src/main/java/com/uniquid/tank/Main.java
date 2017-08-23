@@ -95,11 +95,6 @@ public class Main {
 		//
 		// 1 Create Register Factory: we choose the SQLiteRegisterFactory implementation.
 		//
-		// Please note that the SQLiteRegisterFactory implementation requires that the connection string refers
-		// to a sqlite database file that exists on disk! The default value "tank.db" is relative to the current
-		// running thread. Copy the tank.db file inside the resources folder to a location and update the
-		// appropriate connection string!
-		//
 		RegisterFactory registerFactory = new SQLiteRegisterFactory(appSettings.getDBUrl());
 		
 		//
