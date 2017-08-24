@@ -32,6 +32,7 @@ import com.uniquid.register.RegisterFactory;
 import com.uniquid.register.impl.sql.SQLiteRegisterFactory;
 import com.uniquid.register.provider.ProviderChannel;
 import com.uniquid.register.user.UserChannel;
+import com.uniquid.tank.entity.Tank;
 import com.uniquid.tank.function.InputFaucetFunction;
 import com.uniquid.tank.function.OutputFaucetFunction;
 import com.uniquid.tank.function.TankFunction;
@@ -291,6 +292,10 @@ public class Main {
 		simplifier.addFunction(new OutputFaucetFunction(), 36);
 		
 		LOGGER.info("Staring Uniquid library with node: " + machineName);
+
+		// Set static values for Tank singleton
+		Tank.mqttbroker = appSettings.getMQTTBroker();
+		Tank.tankname = machineName;
 		
 		//
 		// 6 start Uniquid core library: this will init the node, sync on blockchain, and use the provided

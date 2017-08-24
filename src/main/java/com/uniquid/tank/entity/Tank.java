@@ -3,6 +3,12 @@ package com.uniquid.tank.entity;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import org.fusesource.mqtt.client.BlockingConnection;
+import org.fusesource.mqtt.client.MQTT;
+import org.fusesource.mqtt.client.QoS;
+import org.fusesource.mqtt.client.Topic;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -10,6 +16,9 @@ import org.slf4j.LoggerFactory;
  * The Tank simulates a liquid container that have an input faucet and an output faucet.
  */
 public class Tank {
+	
+	public static String mqttbroker = "";
+	public static String tankname = "";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tank.class);
 
@@ -81,7 +90,9 @@ public class Tank {
 			if (!opened) {
 
 				this.opened = true;
-
+				
+				LOGGER.info("Tank opened!");
+				
 			}
 
 		}
@@ -100,6 +111,8 @@ public class Tank {
 				outputTimer = new Timer();
 
 				this.opened = false;
+				
+				LOGGER.info("Tank closed!");
 
 			}
 
@@ -178,7 +191,9 @@ public class Tank {
 				level += 1;
 
 				LOGGER.info("Tank level: " + level);
-
+				
+				updateOnMQTT();
+				
 			}
 
 		}
@@ -197,10 +212,68 @@ public class Tank {
 				}
 
 				LOGGER.info("Tank level: " + level);
+				
+				updateOnMQTT();
+				
 			}
 
 		}
 
 	}
+	
+	private void updateOnMQTT() {
+		
+		// Create empty json object
+		JSONObject jsonObject = new JSONObject();
 
+		JSONArray jsonArray = new JSONArray();
+		jsonArray.put(level);
+		
+		// populate sender
+		jsonObject.put("series", jsonArray);
+		
+		jsonObject.put("message", opened ? "OPENED" : "CLOSED");
+		
+		BlockingConnection connection = null;
+		
+		try {
+			final MQTT mqtt = new MQTT();
+			
+			mqtt.setHost(mqttbroker);
+			
+			connection = mqtt.blockingConnection();
+			connection.connect();
+			
+			final String destinationTopic = "/outbox/" + tankname + "/status";
+			
+			final String sender = tankname;
+			
+			// to subscribe
+			final Topic[] topics = { new Topic(sender, QoS.AT_LEAST_ONCE) };
+			/*byte[] qoses = */connection.subscribe(topics);
+
+			// consume
+			connection.publish(destinationTopic, jsonObject.toString().getBytes(), QoS.AT_LEAST_ONCE, false);
+			
+		} catch (Throwable t) {
+			
+			LOGGER.error("Exception", t);
+			
+		} finally {
+			
+			// disconnect
+			try {
+
+				if (connection != null)
+					connection.disconnect();
+
+			} catch (Exception ex) {
+
+				LOGGER.error("Catched Exception", ex);
+
+			}
+
+		} 
+	}
+	
 }
