@@ -3,19 +3,14 @@ package com.uniquid.tank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.Date;
 import java.util.Properties;
-import java.util.Set;
 
 import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Peer;
-import org.bitcoinj.core.PeerAddress;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.wallet.DeterministicSeed;
 import org.gmagnotta.log.LogLevel;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
-import org.gmagnotta.log.impl.system.ConsoleLogEventWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,11 +23,9 @@ import com.uniquid.core.connector.mqtt.MQTTUserClient;
 import com.uniquid.core.impl.UniquidSimplifier;
 import com.uniquid.node.UniquidNodeState;
 import com.uniquid.node.impl.UniquidNodeImpl;
-import com.uniquid.node.listeners.UniquidNodeEventListener;
+import com.uniquid.node.listeners.EmptyUniquidNodeEventListener;
 import com.uniquid.register.RegisterFactory;
 import com.uniquid.register.impl.sql.SQLiteRegisterFactory;
-import com.uniquid.register.provider.ProviderChannel;
-import com.uniquid.register.user.UserChannel;
 import com.uniquid.tank.entity.Tank;
 import com.uniquid.tank.function.InputFaucetFunction;
 import com.uniquid.tank.function.OutputFaucetFunction;
@@ -140,15 +133,18 @@ public class Main {
 			
 			// now we build an UniquidNode with the data read from seed file: we choose the UniquidNodeImpl
 			// implementation
-			uniquidNode = new UniquidNodeImpl.UniquidNodeBuilder().
-					setNetworkParameters(networkParameters).
+			@SuppressWarnings("rawtypes")
+			UniquidNodeImpl.UniquidNodeBuilder builder = new UniquidNodeImpl.UniquidNodeBuilder();
+			
+			builder.setNetworkParameters(networkParameters).
 					setProviderFile(providerWalletFile).
 					setUserFile(userWalletFile).
 					setProviderChainFile(chainFile).
 					setUserChainFile(userChainFile).
 					setRegisterFactory(registerFactory).
-					setNodeName(machineName).
-					buildFromMnemonic(mnemonic, creationTime);
+					setNodeName(machineName);
+			
+			uniquidNode = builder.buildFromMnemonic(mnemonic, creationTime);
 			
 		} else {
 		
@@ -196,67 +192,7 @@ public class Main {
 		// Here we register a callback on the uniquidNode that allow us to be triggered when some interesting events happens
 		// Currently we are only interested in receiving the onNodeStateChange() event. The other methods are present
 		// because we decided to use an anonymous inner class.
-		uniquidNode.addUniquidNodeEventListener(new UniquidNodeEventListener() {
-			
-			@Override
-			public void onUserContractRevoked(UserChannel arg0) {
-				// NOTHING TO DO
-			}
-			
-			@Override
-			public void onUserContractCreated(UserChannel arg0) {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onSyncStarted(int arg0) {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onSyncProgress(double arg0, int arg1, Date arg2) {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onSyncNodeStart() {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onSyncNodeEnd() {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onSyncEnded() {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onProviderContractRevoked(ProviderChannel arg0) {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onProviderContractCreated(ProviderChannel arg0) {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onPeersDiscovered(Set<PeerAddress> arg0) {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onPeerDisconnected(Peer arg0, int arg1) {
-				// NOTHING TO DO				
-			}
-			
-			@Override
-			public void onPeerConnected(Peer arg0, int arg1) {
-				// NOTHING TO DO				
-			}
+		uniquidNode.addUniquidNodeEventListener(new EmptyUniquidNodeEventListener() {
 			
 			@Override
 			public void onNodeStateChange(UniquidNodeState arg0) {
