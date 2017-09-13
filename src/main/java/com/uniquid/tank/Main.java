@@ -3,7 +3,6 @@ package com.uniquid.tank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.security.SecureRandom;
 import java.util.Date;
 import java.util.Properties;
 import java.util.Set;
@@ -13,6 +12,10 @@ import org.bitcoinj.core.Peer;
 import org.bitcoinj.core.PeerAddress;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.wallet.DeterministicSeed;
+import org.gmagnotta.log.LogLevel;
+import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
+import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
+import org.gmagnotta.log.impl.system.ConsoleLogEventWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,10 +26,8 @@ import com.uniquid.core.connector.mqtt.AnnouncerProviderRequest;
 import com.uniquid.core.connector.mqtt.MQTTConnector;
 import com.uniquid.core.connector.mqtt.MQTTUserClient;
 import com.uniquid.core.impl.UniquidSimplifier;
-import com.uniquid.node.UniquidNode;
 import com.uniquid.node.UniquidNodeState;
 import com.uniquid.node.impl.UniquidNodeImpl;
-import com.uniquid.node.impl.UniquidNodeImpl.Builder;
 import com.uniquid.node.listeners.UniquidNodeEventListener;
 import com.uniquid.register.RegisterFactory;
 import com.uniquid.register.impl.sql.SQLiteRegisterFactory;
@@ -36,7 +37,9 @@ import com.uniquid.tank.entity.Tank;
 import com.uniquid.tank.function.InputFaucetFunction;
 import com.uniquid.tank.function.OutputFaucetFunction;
 import com.uniquid.tank.function.TankFunction;
+import com.uniquid.utils.BackupData;
 import com.uniquid.utils.SeedUtils;
+import com.uniquid.utils.StringUtils;
 
 /*
  * Example to show how to build a Tank simulator with Uniquid Node capabilities
@@ -44,12 +47,20 @@ import com.uniquid.utils.SeedUtils;
 public class Main {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class.getName());
-
+	
 	private static final String APPCONFIG_PROPERTIES = "/appconfig.properties";
 	
-	private static final String AB = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
 	public static void main(String[] args) throws Exception {
+		
+		org.gmagnotta.log.LogEventCollector.getInstance().setLogLevelThreshold(LogLevel.INFO);
+
+		//org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(new ConsoleLogEventWriter());
+		
+		FileSystemLogStore fileSystemLogStore = new FileSystemLogStore(1 * 1024 * 1024, 3, new File("."));
+		
+		FileSystemLogEventWriter fs = new FileSystemLogEventWriter(fileSystemLogStore);
+		
+		org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(fs);
 		
 		// Read configuration properties
 		InputStream inputStream = null;
@@ -91,7 +102,7 @@ public class Main {
 		File userChainFile = appSettings.getUserChainFile();
 		
 		// Machine name
-		String machineName = "JTank" + getRandomName();
+		String machineName = "JTank" + StringUtils.getRandomName(12);
 		
 		// Seed backup file
 		File seedFile = appSettings.getSeedFile();
@@ -104,7 +115,7 @@ public class Main {
 		//
 		// 2 start to construct an UniquidNode...
 		//
-		final UniquidNode uniquidNode;
+		final UniquidNodeImpl uniquidNode;
 		
 		// ... if the seed file exists then we use the SeedUtils to open it and decrypt its content: we can extract the
 		// mnemonic string, creationtime and name to restore the node; otherwise we create a new node initialized with a
@@ -112,26 +123,28 @@ public class Main {
 		if (seedFile.exists() && !seedFile.isDirectory()) {
 			
 			// create a SeedUtils (the wrapper that is able to load/read/decrypt the seed file)
-			SeedUtils seedUtils = new SeedUtils(seedFile);
+			SeedUtils<BackupData> seedUtils = new SeedUtils<BackupData>(seedFile);
 			
 			// decrypt the content with the password read from the application setting properties
-			Object[] readData = seedUtils.readData(appSettings.getSeedPassword());
+			BackupData readData = new BackupData(); 
+
+			seedUtils.readData(appSettings.getSeedPassword(), readData);
 
 			// fetch mnemonic string
-			final String mnemonic = (String) readData[0];
+			final String mnemonic = readData.getMnemonic();
 
 			// fetch creation time
-			final int creationTime = (Integer) readData[1];
+			final long creationTime = readData.getCreationTime();
 			
-			machineName = (String) readData[2];
+			machineName = readData.getName();
 			
 			// now we build an UniquidNode with the data read from seed file: we choose the UniquidNodeImpl
 			// implementation
-			uniquidNode = new UniquidNodeImpl.Builder().
+			uniquidNode = new UniquidNodeImpl.UniquidNodeBuilder().
 					setNetworkParameters(networkParameters).
 					setProviderFile(providerWalletFile).
 					setUserFile(userWalletFile).
-					setChainFile(chainFile).
+					setProviderChainFile(chainFile).
 					setUserChainFile(userChainFile).
 					setRegisterFactory(registerFactory).
 					setNodeName(machineName).
@@ -140,20 +153,21 @@ public class Main {
 		} else {
 		
 			// We create a builder with specified settings
-			Builder builder = new UniquidNodeImpl.Builder().
-					setNetworkParameters(networkParameters).
-					setProviderFile(providerWalletFile).
-					setUserFile(userWalletFile).
-					setChainFile(chainFile).
-					setUserChainFile(userChainFile).
-					setRegisterFactory(registerFactory).
-					setNodeName(machineName);
+			@SuppressWarnings("rawtypes")
+			UniquidNodeImpl.UniquidNodeBuilder builder = new UniquidNodeImpl.UniquidNodeBuilder();
+					builder.setNetworkParameters(networkParameters)
+					.setProviderFile(providerWalletFile)
+					.setUserFile(userWalletFile)
+					.setProviderChainFile(chainFile)
+					.setUserChainFile(userChainFile)
+					.setRegisterFactory(registerFactory)
+					.setNodeName(machineName);
 			
 			// ask the builder to create a node with a random seed
 			uniquidNode = builder.build();
 			
 			// Now we fetch from the builder the DeterministicSeed that allow us to export mnemonics and creationtime
-			DeterministicSeed seed = builder.getDeterministicSeed();
+			DeterministicSeed seed = uniquidNode.getDeterministicSeed();
 			
 			// we save the creation time
 			long creationTime = seed.getCreationTimeSeconds();
@@ -162,13 +176,16 @@ public class Main {
 			String mnemonics = Utils.join(seed.getMnemonicCode());
 			
 			// we prepare the data to save for seedUtils
-			Object[] saveData = new Object[] {mnemonics, creationTime, machineName};
+			BackupData backupData = new BackupData();
+			backupData.setMnemonic(mnemonics);
+			backupData.setCreationTime(creationTime);
+			backupData.setName(machineName);
 			
 			// we construct a seedutils
-			SeedUtils seedUtils = new SeedUtils(seedFile);
+			SeedUtils<BackupData> seedUtils = new SeedUtils<BackupData>(seedFile);
 			
 			// now backup mnemonics encrypted on disk
-			seedUtils.saveData(saveData, appSettings.getSeedPassword());
+			seedUtils.saveData(backupData, appSettings.getSeedPassword());
 		
 		}
 		
@@ -292,7 +309,7 @@ public class Main {
 		simplifier.addFunction(new OutputFaucetFunction(), 36);
 		
 		LOGGER.info("Staring Uniquid library with node: " + machineName);
-
+		
 		// Set static values for Tank singleton
 		Tank.mqttbroker = appSettings.getMQTTBroker();
 		Tank.tankname = machineName;
@@ -325,19 +342,4 @@ public class Main {
 		
 	}
 	
-	public static String getRandomName() {
-		
-		SecureRandom random = new SecureRandom();
-		
-		int len = 12;
-
-		StringBuilder sb = new StringBuilder(len);
-		for (int i = 0; i < len; i++) {
-			sb.append(AB.charAt(random.nextInt(AB.length())));
-		}
-		
-		return sb.toString();
-
-	}
-
 }
