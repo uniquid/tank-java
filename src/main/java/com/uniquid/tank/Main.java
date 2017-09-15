@@ -11,6 +11,7 @@ import org.bitcoinj.wallet.DeterministicSeed;
 import org.gmagnotta.log.LogLevel;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
+import org.gmagnotta.log.impl.system.ConsoleLogEventWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,11 +44,18 @@ public class Main {
 	
 	private static final String APPCONFIG_PROPERTIES = "/appconfig.properties";
 	
+	private static final String DEBUG = "DEBUG";
+	
 	public static void main(String[] args) throws Exception {
 		
 		org.gmagnotta.log.LogEventCollector.getInstance().setLogLevelThreshold(LogLevel.INFO);
-
-		//org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(new ConsoleLogEventWriter());
+		
+		String debug = System.getProperty(DEBUG);
+		
+		if (debug != null) {
+			org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(new ConsoleLogEventWriter());
+			org.gmagnotta.log.LogEventCollector.getInstance().setLogLevelThreshold(LogLevel.TRACE);
+		}
 		
 		FileSystemLogStore fileSystemLogStore = new FileSystemLogStore(1 * 1024 * 1024, 3, new File("."));
 		
