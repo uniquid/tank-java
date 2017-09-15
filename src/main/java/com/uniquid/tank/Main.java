@@ -213,7 +213,7 @@ public class Main {
 
 						// Create a MQTTClient pointing to the broker on the UID/announce topic and specify
 						// 0 timeout: we don't want a response.
-						final UserClient rpcClient = new MQTTUserClient(appSettings.getMQTTBroker(), "UID/announce", 0);
+						final UserClient rpcClient = new MQTTUserClient(appSettings.getMQTTBroker(), appSettings.getAnnounceTopic(), 0);
 						
 						// Create announce request
 						final ProviderRequest providerRequest = new AnnouncerProviderRequest.Builder()

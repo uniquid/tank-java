@@ -62,12 +62,6 @@ public class TankSettings extends AbstractSettings {
 			"Description", 
 			"jdbc:sqlite:imprinter.db", new NotEmpty());
 	
-	public static final Setting AUTORECOVERY_ENABLE = new Setting(
-			"autorecovery.enable",
-			"Auto Recovery enable",
-			"Auto Recovery enable",
-			Boolean.FALSE);
-	
 	public static final Setting SEED_FILE = new Setting(
 			"seedFile",
 			"seed file",
@@ -79,6 +73,12 @@ public class TankSettings extends AbstractSettings {
 			"seed password",
 			"Seed password",
 			"defaultpassword", new NotEmpty());
+	
+	public static final Setting TOPIC_ANNOUNCE = new Setting(
+			"topic.announce",
+			"Announce Topic",
+			"Announce Topic",
+			"UID/announce", new NotEmpty());
 	
 	public TankSettings() throws SettingValidationException, UnknownSettingException {
 		super();
@@ -157,12 +157,6 @@ public class TankSettings extends AbstractSettings {
 		return getAsString(DB_URL);
 	}
 	
-	public boolean isAutorecoveryEnable() {
-		
-		return getAsBoolean(AUTORECOVERY_ENABLE);
-		
-	}
-	
 	public File getSeedFile() {
 		
 		return new File(getAsString(SEED_FILE));
@@ -172,6 +166,12 @@ public class TankSettings extends AbstractSettings {
 	public String getSeedPassword() {
 		
 		return getAsString(SEED_PASSWORD);
+		
+	}
+	
+	public String getAnnounceTopic() {
+		
+		return getAsString(TOPIC_ANNOUNCE);
 		
 	}
 	
