@@ -2,21 +2,21 @@ package com.uniquid.tank.function;
 
 import java.io.IOException;
 
-import com.uniquid.core.ProviderRequest;
-import com.uniquid.core.ProviderResponse;
 import com.uniquid.core.provider.exception.FunctionException;
 import com.uniquid.core.provider.impl.GenericFunction;
+import com.uniquid.messages.FunctionRequestMessage;
+import com.uniquid.messages.FunctionResponseMessage;
 import com.uniquid.tank.entity.Tank;
 
 public class TankFunction extends GenericFunction {
 
 	@Override
-	public void service(ProviderRequest inputMessage, ProviderResponse outputMessage, byte[] payload)
+	public void service(FunctionRequestMessage inputMessage, FunctionResponseMessage outputMessage, byte[] payload)
 			throws FunctionException, IOException {
 		
 		Tank tank = Tank.getInstance();
 		
-		String params = inputMessage.getParams();
+		String params = inputMessage.getParameters();
 		String result = "";
 		if (params.startsWith("open")) {
 			
