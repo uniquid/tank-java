@@ -215,7 +215,7 @@ public class Main {
 
 						// Create a MQTTClient pointing to the broker on the UID/announce topic and specify
 						// 0 timeout: we don't want a response.
-						final UserClient userClient = new MQTTUserClient(appSettings.getMQTTBroker(), appSettings.getAnnounceTopic(), 0, senderTopic);
+						final MQTTUserClient userClient = new MQTTUserClient(appSettings.getMQTTBroker(), appSettings.getAnnounceTopic(), 0, senderTopic);
 						
 						AnnounceMessage announceMessage = new AnnounceMessage();
 						announceMessage.setName(uniquidNode.getNodeName());
@@ -223,7 +223,7 @@ public class Main {
 						
 						// send the request.  The server will not reply (but will do an imprint on blockchain) so
 						// the timeout exception here is expected
-						userClient.execute(announceMessage);
+						userClient.send(announceMessage);
 						
 					}
 
