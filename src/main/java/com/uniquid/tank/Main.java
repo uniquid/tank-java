@@ -15,8 +15,8 @@ import org.gmagnotta.log.impl.system.ConsoleLogEventWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.uniquid.core.connector.Connector;
-import com.uniquid.core.connector.mqtt.MQTTConnector;
+import com.uniquid.connector.Connector;
+import com.uniquid.connector.impl.MQTTConnector;
 import com.uniquid.core.impl.UniquidSimplifier;
 import com.uniquid.messages.AnnounceMessage;
 import com.uniquid.node.UniquidNodeState;
