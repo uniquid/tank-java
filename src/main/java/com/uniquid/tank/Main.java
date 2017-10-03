@@ -11,16 +11,14 @@ import org.bitcoinj.wallet.DeterministicSeed;
 import org.gmagnotta.log.LogLevel;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
+import org.gmagnotta.log.impl.system.ConsoleLogEventWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.uniquid.core.ProviderRequest;
-import com.uniquid.core.connector.Connector;
-import com.uniquid.core.connector.UserClient;
-import com.uniquid.core.connector.mqtt.AnnouncerProviderRequest;
-import com.uniquid.core.connector.mqtt.MQTTConnector;
-import com.uniquid.core.connector.mqtt.MQTTUserClient;
+import com.uniquid.connector.Connector;
+import com.uniquid.connector.impl.MQTTConnector;
 import com.uniquid.core.impl.UniquidSimplifier;
+import com.uniquid.messages.AnnounceMessage;
 import com.uniquid.node.UniquidNodeState;
 import com.uniquid.node.impl.UniquidNodeImpl;
 import com.uniquid.node.listeners.EmptyUniquidNodeEventListener;
@@ -30,6 +28,8 @@ import com.uniquid.tank.entity.Tank;
 import com.uniquid.tank.function.InputFaucetFunction;
 import com.uniquid.tank.function.OutputFaucetFunction;
 import com.uniquid.tank.function.TankFunction;
+import com.uniquid.userclient.UserClient;
+import com.uniquid.userclient.impl.MQTTUserClient;
 import com.uniquid.utils.BackupData;
 import com.uniquid.utils.SeedUtils;
 import com.uniquid.utils.StringUtils;
@@ -43,11 +43,18 @@ public class Main {
 	
 	private static final String APPCONFIG_PROPERTIES = "/appconfig.properties";
 	
+	private static final String DEBUG = "DEBUG";
+	
 	public static void main(String[] args) throws Exception {
 		
 		org.gmagnotta.log.LogEventCollector.getInstance().setLogLevelThreshold(LogLevel.INFO);
-
-		//org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(new ConsoleLogEventWriter());
+		
+		String debug = System.getProperty(DEBUG);
+		
+		if (debug != null) {
+			org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(new ConsoleLogEventWriter());
+			org.gmagnotta.log.LogEventCollector.getInstance().setLogLevelThreshold(LogLevel.TRACE);
+		}
 		
 		FileSystemLogStore fileSystemLogStore = new FileSystemLogStore(1 * 1024 * 1024, 3, new File("."));
 		
@@ -185,6 +192,8 @@ public class Main {
 		
 		}
 		
+		final String senderTopic = machineName;
+
 		//
 		// 2 ...we finished to build an UniquidNode
 		// 
@@ -199,24 +208,22 @@ public class Main {
 
 				// Register an handler that allow to send an imprinting message to the imprinter
 				try {
+					
 
 					// If the node is ready to be imprinted...
 					if (UniquidNodeState.IMPRINTING.equals(arg0)) {
 
 						// Create a MQTTClient pointing to the broker on the UID/announce topic and specify
 						// 0 timeout: we don't want a response.
-						final UserClient rpcClient = new MQTTUserClient(appSettings.getMQTTBroker(), "UID/announce", 0);
+						final MQTTUserClient userClient = new MQTTUserClient(appSettings.getMQTTBroker(), appSettings.getAnnounceTopic(), 0, senderTopic);
 						
-						// Create announce request
-						final ProviderRequest providerRequest = new AnnouncerProviderRequest.Builder()
-								.set_sender(uniquidNode.getNodeName())
-								.set_name(uniquidNode.getNodeName())
-								.set_xpub(uniquidNode.getPublicKey())
-								.build();
+						AnnounceMessage announceMessage = new AnnounceMessage();
+						announceMessage.setName(uniquidNode.getNodeName());
+						announceMessage.setPubKey(uniquidNode.getPublicKey());
 						
 						// send the request.  The server will not reply (but will do an imprint on blockchain) so
 						// the timeout exception here is expected
-						rpcClient.sendOutputMessage(providerRequest);
+						userClient.send(announceMessage);
 						
 					}
 
