@@ -28,7 +28,6 @@ import com.uniquid.tank.entity.Tank;
 import com.uniquid.tank.function.InputFaucetFunction;
 import com.uniquid.tank.function.OutputFaucetFunction;
 import com.uniquid.tank.function.TankFunction;
-import com.uniquid.userclient.UserClient;
 import com.uniquid.userclient.impl.MQTTUserClient;
 import com.uniquid.utils.BackupData;
 import com.uniquid.utils.SeedUtils;
@@ -221,8 +220,7 @@ public class Main {
 						announceMessage.setName(uniquidNode.getNodeName());
 						announceMessage.setPubKey(uniquidNode.getPublicKey());
 						
-						// send the request.  The server will not reply (but will do an imprint on blockchain) so
-						// the timeout exception here is expected
+						// send the request.  The server will not reply (but will do an imprint on blockchain)
 						userClient.send(announceMessage);
 						
 					}
