@@ -9,7 +9,7 @@ import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 
-import com.uniquid.node.impl.params.UniquidRegTest;
+import com.uniquid.params.UniquidRegTest;
 import com.uniquid.settings.exception.SettingValidationException;
 import com.uniquid.settings.exception.UnknownSettingException;
 import com.uniquid.settings.model.Setting;
