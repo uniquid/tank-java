@@ -80,6 +80,12 @@ public class TankSettings extends AbstractSettings {
 			"Announce Topic",
 			"UID/announce", new NotEmpty());
 	
+	public static final Setting BC_PEERS = new Setting(
+			"bc.peers",
+			"Blockchain peers",
+			"Blockchain peers",
+			"127.0.0.1", new NotEmpty());
+	
 	public TankSettings() throws SettingValidationException, UnknownSettingException {
 		super();
 	}
@@ -172,6 +178,12 @@ public class TankSettings extends AbstractSettings {
 	public String getAnnounceTopic() {
 		
 		return getAsString(TOPIC_ANNOUNCE);
+		
+	}
+	
+	public String getBlockChainPeers() {
+		
+		return getAsString(BC_PEERS);
 		
 	}
 	

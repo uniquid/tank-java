@@ -22,6 +22,7 @@ import com.uniquid.messages.AnnounceMessage;
 import com.uniquid.node.UniquidNodeState;
 import com.uniquid.node.impl.UniquidNodeImpl;
 import com.uniquid.node.listeners.EmptyUniquidNodeEventListener;
+import com.uniquid.params.UniquidRegTest;
 import com.uniquid.register.RegisterFactory;
 import com.uniquid.register.impl.sql.SQLiteRegisterFactory;
 import com.uniquid.tank.entity.Tank;
@@ -30,6 +31,7 @@ import com.uniquid.tank.function.OutputFaucetFunction;
 import com.uniquid.tank.function.TankFunction;
 import com.uniquid.userclient.impl.MQTTUserClient;
 import com.uniquid.utils.BackupData;
+import com.uniquid.utils.IpUtils;
 import com.uniquid.utils.SeedUtils;
 import com.uniquid.utils.StringUtils;
 
@@ -105,6 +107,12 @@ public class Main {
 		
 		// Seed backup file
 		File seedFile = appSettings.getSeedFile();
+		
+		// Retrieve list of blockchain peers
+		String bcpeers = appSettings.getBlockChainPeers();
+		
+		// Tell library to use those peers
+		UniquidRegTest.get().overridePeers(bcpeers);
 		
 		//
 		// 1 Create Register Factory: we choose the SQLiteRegisterFactory implementation.
