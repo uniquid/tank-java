@@ -42,6 +42,8 @@ public class Tank {
 		this.outputTimer = new Timer();
 		this.inputOpen = false;
 		this.outputOpen = false;
+
+		createChart();
 	}
 
 	public static synchronized Tank getInstance() {
@@ -275,5 +277,51 @@ public class Tank {
 
 		} 
 	}
-	
+
+	private void createChart() {
+
+		BlockingConnection connection = null;
+
+		try {
+			final MQTT mqtt = new MQTT();
+
+			mqtt.setHost(mqttbroker);
+
+			connection = mqtt.blockingConnection();
+			connection.connect();
+
+			final String destinationTopic = "/outbox/" + tankname + "/deviceInfo";
+
+			final String sender = tankname;
+
+			// to subscribe
+			final Topic[] topics = { new Topic(sender, QoS.AT_LEAST_ONCE) };
+			/*byte[] qoses = */connection.subscribe(topics);
+
+			String message = "{\"deviceInfo\":{\"name\":\"Tank\",\"endPoints\":{\"status\":{\"values\":{\"labels\": [\" \"],\"series\": [0],\"message\":\"CLOSED\"},\"total\": 100,\"centerSum\": 1,\"card-type\": \"crouton-chart-donut\"}},\"description\": \"Uniquid Java Tank Simulator\",\"status\": \"good\"}}";
+			// consume
+			connection.publish(destinationTopic, message.getBytes(), QoS.AT_LEAST_ONCE, false);
+
+		} catch (Throwable t) {
+
+			LOGGER.error("Exception", t);
+
+		} finally {
+
+			// disconnect
+			try {
+
+				if (connection != null)
+					connection.disconnect();
+
+			} catch (Exception ex) {
+
+				LOGGER.error("Catched Exception", ex);
+
+			}
+
+		}
+
+	}
+
 }
