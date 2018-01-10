@@ -8,6 +8,7 @@ import java.util.Properties;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.wallet.DeterministicSeed;
+import org.gmagnotta.log.LogEventWriter;
 import org.gmagnotta.log.LogLevel;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
@@ -31,7 +32,6 @@ import com.uniquid.tank.function.OutputFaucetFunction;
 import com.uniquid.tank.function.TankFunction;
 import com.uniquid.userclient.impl.MQTTUserClient;
 import com.uniquid.utils.BackupData;
-import com.uniquid.utils.IpUtils;
 import com.uniquid.utils.SeedUtils;
 import com.uniquid.utils.StringUtils;
 
@@ -278,6 +278,15 @@ public class Main {
 
 					// tell the library to shutdown and close all opened resources
 					simplifier.shutdown();
+
+					// explicitly stop logging
+					for (LogEventWriter writer : org.gmagnotta.log.LogEventCollector.getInstance().getLogEventWriters()) {
+
+						writer.stop();
+
+					}
+
+					org.gmagnotta.log.LogEventCollector.getInstance().stop();
 
 				} catch (Exception ex) {
 
