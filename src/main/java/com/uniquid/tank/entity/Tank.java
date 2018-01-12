@@ -11,6 +11,8 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 /**
  * The Tank simulates a liquid container that have an input faucet and an output faucet.
@@ -21,6 +23,9 @@ public class Tank {
 	public static String tankname = "";
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Tank.class);
+	private static final String CONSOLE = "CONSOLE";
+	
+	private static final Marker MARKER = MarkerFactory.getMarker(CONSOLE);
 
 	private static Tank INSTANCE;
 
@@ -93,7 +98,7 @@ public class Tank {
 
 				this.opened = true;
 				
-				LOGGER.info("Tank opened!");
+				LOGGER.info(MARKER, "Tank opened!");
 				
 			}
 
@@ -114,7 +119,7 @@ public class Tank {
 
 				this.opened = false;
 				
-				LOGGER.info("Tank closed!");
+				LOGGER.info(MARKER, "Tank closed!");
 
 			}
 
@@ -192,7 +197,7 @@ public class Tank {
 
 				level += 1;
 
-				LOGGER.info("Tank level: " + level);
+				LOGGER.info(MARKER, "Tank level: " + level);
 				
 				updateOnMQTT();
 				
@@ -213,7 +218,7 @@ public class Tank {
 					level -= 2;
 				}
 
-				LOGGER.info("Tank level: " + level);
+				LOGGER.info(MARKER, "Tank level: " + level);
 				
 				updateOnMQTT();
 				
@@ -259,7 +264,7 @@ public class Tank {
 			
 		} catch (Throwable t) {
 			
-			LOGGER.error("Exception", t);
+			LOGGER.error(MARKER, "Exception", t);
 			
 		} finally {
 			
@@ -271,7 +276,7 @@ public class Tank {
 
 			} catch (Exception ex) {
 
-				LOGGER.error("Catched Exception", ex);
+				LOGGER.error(MARKER, "Catched Exception", ex);
 
 			}
 
@@ -304,7 +309,7 @@ public class Tank {
 
 		} catch (Throwable t) {
 
-			LOGGER.error("Exception", t);
+			LOGGER.error(MARKER, "Exception", t);
 
 		} finally {
 
@@ -316,7 +321,7 @@ public class Tank {
 
 			} catch (Exception ex) {
 
-				LOGGER.error("Catched Exception", ex);
+				LOGGER.error(MARKER, "Catched Exception", ex);
 
 			}
 

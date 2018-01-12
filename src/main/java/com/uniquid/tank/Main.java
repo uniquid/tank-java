@@ -3,6 +3,8 @@ package com.uniquid.tank;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Properties;
 
 import org.bitcoinj.core.NetworkParameters;
@@ -12,9 +14,11 @@ import org.gmagnotta.log.LogEventWriter;
 import org.gmagnotta.log.LogLevel;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
-import org.gmagnotta.log.impl.system.ConsoleLogEventWriter;
+import org.gmagnotta.log.impl.system.MarkerAwareConsoleLogEventWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import com.uniquid.connector.Connector;
 import com.uniquid.connector.impl.MQTTConnector;
@@ -26,6 +30,8 @@ import com.uniquid.node.listeners.EmptyUniquidNodeEventListener;
 import com.uniquid.params.UniquidRegTest;
 import com.uniquid.register.RegisterFactory;
 import com.uniquid.register.impl.sql.SQLiteRegisterFactory;
+import com.uniquid.register.provider.ProviderChannel;
+import com.uniquid.register.user.UserChannel;
 import com.uniquid.tank.entity.Tank;
 import com.uniquid.tank.function.InputFaucetFunction;
 import com.uniquid.tank.function.OutputFaucetFunction;
@@ -41,6 +47,9 @@ import com.uniquid.utils.StringUtils;
 public class Main {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(Main.class.getName());
+	private static final String CONSOLE = "CONSOLE";
+	
+	private static final Marker MARKER = MarkerFactory.getMarker(CONSOLE);
 	
 	private static final String APPCONFIG_PROPERTIES = "/appconfig.properties";
 	
@@ -53,15 +62,20 @@ public class Main {
 		String debug = System.getProperty(DEBUG);
 		
 		if (debug != null) {
-			org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(new ConsoleLogEventWriter());
 			org.gmagnotta.log.LogEventCollector.getInstance().setLogLevelThreshold(LogLevel.TRACE);
 		}
-		
+
+		LOGGER.info(MARKER, "Starting tank...");
+
 		FileSystemLogStore fileSystemLogStore = new FileSystemLogStore(1 * 1024 * 1024, 3, new File("."));
 		
 		FileSystemLogEventWriter fs = new FileSystemLogEventWriter(fileSystemLogStore);
 		
 		org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(fs);
+		
+		MarkerAwareConsoleLogEventWriter markerAwareConsoleLogEventWriter = new MarkerAwareConsoleLogEventWriter(CONSOLE);
+		
+		org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(markerAwareConsoleLogEventWriter);
 		
 		// Read configuration properties
 		InputStream inputStream = null;
@@ -216,6 +230,7 @@ public class Main {
 				// Register an handler that allow to send an imprinting message to the imprinter
 				try {
 					
+					LOGGER.info(MARKER, "Tank new state: " + arg0);
 
 					// If the node is ready to be imprinted...
 					if (UniquidNodeState.IMPRINTING.equals(arg0)) {
@@ -228,6 +243,8 @@ public class Main {
 						announceMessage.setName(uniquidNode.getNodeName());
 						announceMessage.setPubKey(uniquidNode.getPublicKey());
 						
+						LOGGER.info(MARKER, "Announcing tank on MQTT to imprinter");
+						
 						// send the request.  The server will not reply (but will do an imprint on blockchain)
 						userClient.send(announceMessage);
 						
@@ -236,6 +253,26 @@ public class Main {
 				} catch (Exception ex) {
 					// expected! the server will not reply
 				}
+			}
+			
+			@Override
+			public void onProviderContractCreated(ProviderChannel providerChannel) {
+				LOGGER.info(MARKER, "Created Provider Contract: " + providerChannel);
+			}
+
+			@Override
+			public void onProviderContractRevoked(ProviderChannel providerChannel) {
+				LOGGER.info(MARKER, "Revoked Provider Contract: " + providerChannel);
+			}
+
+			@Override
+			public void onUserContractCreated(UserChannel userChannel) {
+				LOGGER.info(MARKER, "Created User Contract: " + userChannel);
+			}
+
+			@Override
+			public void onUserContractRevoked(UserChannel userChannel) {
+				LOGGER.info(MARKER, "Revoked User Contract: " + userChannel);
 			}
 
 		});
@@ -257,7 +294,7 @@ public class Main {
 		simplifier.addFunction(new InputFaucetFunction(), 35);
 		simplifier.addFunction(new OutputFaucetFunction(), 36);
 		
-		LOGGER.info("Staring Uniquid library with node: " + machineName);
+		LOGGER.info(MARKER, "Starting Uniquid library with node: " + machineName);
 		
 		// Set static values for Tank singleton
 		Tank.mqttbroker = appSettings.getMQTTBroker();
@@ -273,7 +310,7 @@ public class Main {
 			
 			public void run() {
 
-				LOGGER.info("Terminating tank");
+				LOGGER.info(MARKER, "Terminating tank");
 				try {
 
 					// tell the library to shutdown and close all opened resources
@@ -296,7 +333,7 @@ public class Main {
 			}
 		});
 		
-		LOGGER.info("Exiting");
+		LOGGER.info(MARKER, "Tank ready");
 		
 	}
 	
