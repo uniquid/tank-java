@@ -6,7 +6,13 @@ The Uniquid java tank simulator is a simple application that shows how to use th
 ### Technologies
 
 * Java 7
-* [Maven 3+](http://maven.apache.org) - for building the project
+* [Maven 3+](http://maven.apache.org) - to building the project
+
+### Dependencies
+- [bitcoinj](https://github.com/uniquid/bitcoinj/tree/release-0.14-uniquid)
+- [uidcore-java](https://github.com/uniquid/uidcore-java/tree/master)
+- [uniquid-utils](https://github.com/uniquid/uniquid-utils)
+- [JavaEmbeddableLogging](https://github.com/gmagnotta/JavaEmbeddableLogging)
 
 ### Getting started
 
