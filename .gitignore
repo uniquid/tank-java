@@ -3,3 +3,5 @@ bin
 .classpath
 .settings
 .project
+*.iml
+*-local.properties
