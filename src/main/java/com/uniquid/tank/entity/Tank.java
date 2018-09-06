@@ -1,8 +1,5 @@
 package com.uniquid.tank.entity;
 
-import java.util.Timer;
-import java.util.TimerTask;
-
 import org.fusesource.mqtt.client.BlockingConnection;
 import org.fusesource.mqtt.client.MQTT;
 import org.fusesource.mqtt.client.QoS;
@@ -13,6 +10,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 import org.slf4j.MarkerFactory;
+
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * The Tank simulates a liquid container that have an input faucet and an output faucet.
@@ -35,7 +35,7 @@ public class Tank {
 
 	private int level = 0;
 
-	private Object syncObject;
+	private final Object syncObject;
 
 	private Timer inputTimer;
 	private Timer outputTimer;

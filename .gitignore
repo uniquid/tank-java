@@ -5,3 +5,9 @@ bin
 .project
 *.iml
 *-local.properties
+*.db*
+*.wallet
+*.spvchain
+*.backup
+*.log
+.idea

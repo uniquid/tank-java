@@ -1,12 +1,12 @@
 package com.uniquid.tank.function;
 
-import java.io.IOException;
-
 import com.uniquid.core.provider.exception.FunctionException;
 import com.uniquid.core.provider.impl.GenericFunction;
 import com.uniquid.messages.FunctionRequestMessage;
 import com.uniquid.messages.FunctionResponseMessage;
 import com.uniquid.tank.entity.Tank;
+
+import java.io.IOException;
 
 public class OutputFaucetFunction extends GenericFunction {
 

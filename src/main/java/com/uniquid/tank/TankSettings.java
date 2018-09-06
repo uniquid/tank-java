@@ -1,20 +1,21 @@
 package com.uniquid.tank;
 
-import java.io.File;
-import java.util.Properties;
-import java.util.Set;
-
+import com.uniquid.params.UniquidLitecoinRegTest;
+import com.uniquid.params.UniquidLitecoinTest;
+import com.uniquid.params.UniquidRegTest;
+import com.uniquid.settings.exception.SettingValidationException;
+import com.uniquid.settings.exception.UnknownSettingException;
+import com.uniquid.settings.model.AbstractSettings;
+import com.uniquid.settings.model.Setting;
+import com.uniquid.settings.validator.NotEmpty;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.params.MainNetParams;
 import org.bitcoinj.params.RegTestParams;
 import org.bitcoinj.params.TestNet3Params;
 
-import com.uniquid.params.UniquidRegTest;
-import com.uniquid.settings.exception.SettingValidationException;
-import com.uniquid.settings.exception.UnknownSettingException;
-import com.uniquid.settings.model.Setting;
-import com.uniquid.settings.model.AbstractSettings;
-import com.uniquid.settings.validator.NotEmpty;
+import java.io.File;
+import java.util.Properties;
+import java.util.Set;
 
 public class TankSettings extends AbstractSettings {
 
@@ -60,7 +61,7 @@ public class TankSettings extends AbstractSettings {
 			"db.url",
 			"User Wallet File",
 			"Description", 
-			"jdbc:sqlite:imprinter.db", new NotEmpty());
+			"jdbc:sqlite:tank.db", new NotEmpty());
 	
 	public static final Setting SEED_FILE = new Setting(
 			"seedFile",
@@ -121,6 +122,14 @@ public class TankSettings extends AbstractSettings {
 		} else if (UniquidRegTest.class.getName().equals(networkParametersProperties)) {
 
 			networkParameters = UniquidRegTest.get();
+
+		} else if (UniquidLitecoinTest.class.getName().equals(networkParametersProperties)) {
+
+        	networkParameters = UniquidLitecoinTest.get();
+
+		} else if (UniquidLitecoinRegTest.class.getName().equals(networkParametersProperties)) {
+
+        	networkParameters = UniquidLitecoinRegTest.get();
 
 		}
 

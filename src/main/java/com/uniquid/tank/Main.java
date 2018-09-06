@@ -1,25 +1,5 @@
 package com.uniquid.tank;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Properties;
-
-import org.bitcoinj.core.NetworkParameters;
-import org.bitcoinj.core.Utils;
-import org.bitcoinj.wallet.DeterministicSeed;
-import org.gmagnotta.log.LogEventWriter;
-import org.gmagnotta.log.LogLevel;
-import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
-import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
-import org.gmagnotta.log.impl.system.MarkerAwareConsoleLogEventWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Marker;
-import org.slf4j.MarkerFactory;
-
 import com.uniquid.connector.Connector;
 import com.uniquid.connector.impl.MQTTConnector;
 import com.uniquid.core.impl.UniquidSimplifier;
@@ -40,6 +20,23 @@ import com.uniquid.userclient.impl.MQTTUserClient;
 import com.uniquid.utils.BackupData;
 import com.uniquid.utils.SeedUtils;
 import com.uniquid.utils.StringUtils;
+import org.bitcoinj.core.NetworkParameters;
+import org.bitcoinj.core.Utils;
+import org.bitcoinj.wallet.DeterministicSeed;
+import org.gmagnotta.log.LogEventWriter;
+import org.gmagnotta.log.LogLevel;
+import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
+import org.gmagnotta.log.impl.filesystem.FileSystemLogStore;
+import org.gmagnotta.log.impl.system.MarkerAwareConsoleLogEventWriter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Properties;
 
 /*
  * Example to show how to build a Tank simulator with Uniquid Node capabilities
@@ -78,7 +75,7 @@ public class Main {
 		org.gmagnotta.log.LogEventCollector.getInstance().addLogEventWriter(markerAwareConsoleLogEventWriter);
 		
 		// Read configuration properties
-		InputStream inputStream = null;
+		InputStream inputStream;
 		
 		if (args.length != 0) {
 			
