@@ -75,11 +75,11 @@ public class TankSettings extends AbstractSettings {
 			"Seed password",
 			"defaultpassword", new NotEmpty());
 	
-	public static final Setting TOPIC_ANNOUNCE = new Setting(
-			"topic.announce",
-			"Announce Topic",
-			"Announce Topic",
-			"UID/announce", new NotEmpty());
+	public static final Setting ORG_ID = new Setting(
+			"orgId",
+			"Organization",
+			"Organization id that use to coordinate messages in MQTT",
+			"organization", new NotEmpty());
 	
 	public static final Setting BC_PEERS = new Setting(
 			"bc.peers",
@@ -108,92 +108,63 @@ public class TankSettings extends AbstractSettings {
         NetworkParameters networkParameters = null;
         
         if (MainNetParams.class.getName().equals(networkParametersProperties)) {
-
         		networkParameters  = MainNetParams.get();
-
         } else if (TestNet3Params.class.getName().equals(networkParametersProperties)) {
-
         		networkParameters = TestNet3Params.get();
-
         } else if (RegTestParams.class.getName().equals(networkParametersProperties)) {
-
 			networkParameters = RegTestParams.get();
-
 		} else if (UniquidRegTest.class.getName().equals(networkParametersProperties)) {
-
 			networkParameters = UniquidRegTest.get();
-
 		} else if (UniquidLitecoinTest.class.getName().equals(networkParametersProperties)) {
-
         	networkParameters = UniquidLitecoinTest.get();
-
 		} else if (UniquidLitecoinRegTest.class.getName().equals(networkParametersProperties)) {
-
         	networkParameters = UniquidLitecoinRegTest.get();
-
 		}
 
         return networkParameters;
-	
 	}
 	
 	public File getUserWalletFile() {
-		
 		return new File(getAsString(USERWALLET_FILE));
-		
 	}
 	
 	public File getProviderWalletFile() {
-		
 		return new File(getAsString(PROVIDERWALLET_FILE));
-		
 	}
 	
 	public File getChainFile() {
-		
 		return new File(getAsString(CHAIN_FILE));
-		
 	}
 	
 	public File getUserChainFile() {
-		
 		return new File(getAsString(USER_CHAIN_FILE));
-		
 	}
 	
 	public String getMQTTBroker() {
-		
 		return getAsString(MQTT_BROKER);
-	
 	}
 	
 	public String getDBUrl() {
-		
 		return getAsString(DB_URL);
 	}
 	
 	public File getSeedFile() {
-		
 		return new File(getAsString(SEED_FILE));
-		
 	}
 	
 	public String getSeedPassword() {
-		
 		return getAsString(SEED_PASSWORD);
-		
 	}
 	
+	public String getOrgId() {
+		return getAsString(ORG_ID);
+	}
+
 	public String getAnnounceTopic() {
-		
-		return getAsString(TOPIC_ANNOUNCE);
-		
+		return getAsString(ORG_ID) + "/announce";
 	}
 	
 	public String getBlockChainPeers() {
-		
 		return getAsString(BC_PEERS);
-		
 	}
-	
 }
