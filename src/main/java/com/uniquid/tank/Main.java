@@ -1,19 +1,12 @@
 package com.uniquid.tank;
 
-import com.subgraph.orchid.encoders.Hex;
 import com.uniquid.connector.Connector;
 import com.uniquid.connector.impl.MQTTConnector;
 import com.uniquid.core.Listener;
-import com.uniquid.core.impl.RequestMessageHandler;
+import com.uniquid.core.impl.DefaultRequestHandler;
 import com.uniquid.core.impl.UniquidSimplifier;
 import com.uniquid.messages.AnnounceMessage;
-import com.uniquid.messages.CapabilityMessage;
-import com.uniquid.messages.FunctionRequestMessage;
-import com.uniquid.messages.FunctionResponseMessage;
-import com.uniquid.node.UniquidCapability;
-import com.uniquid.node.UniquidNode;
 import com.uniquid.node.UniquidNodeState;
-import com.uniquid.node.exception.NodeException;
 import com.uniquid.node.impl.UniquidNodeImpl;
 import com.uniquid.node.listeners.EmptyUniquidNodeEventListener;
 import com.uniquid.params.UniquidRegTest;
@@ -311,63 +304,9 @@ public class Main {
 		// registerFactory to interact with the persistence layer
 		simplifier.syncBlockchain();
 
-		Listener listener = new Listener(connector, new RequestMessageHandler() {
+		Listener listener = new Listener(connector, new DefaultRequestHandler());
+		simplifier.addListener(listener);
 
-			@Override
-			public FunctionResponseMessage handleFunctionRequest(FunctionRequestMessage message) {
-				LOGGER.info(CONSOLE, "Received FunctionRequest!");
-
-				try {
-					// Check if sender is authorized or throw exception
-					byte[] payload = simplifier.checkSender(message);
-
-					LOGGER.info(CONSOLE, "Performing function...");
-					return simplifier.performProviderRequest(message, payload);
-
-				} catch (Exception e) {
-					LOGGER.error(CONSOLE, "Error performing function: ", e);
-				}
-				return null;
-			}
-
-			@Override
-			public void handleUniquidCapability(CapabilityMessage message) {
-				LOGGER.info(CONSOLE, "Received capability!");
-
-				UniquidNode node = simplifier.getNode();
-
-				if (!UniquidNodeState.READY.equals(node.getNodeState())) {
-					LOGGER.warn(CONSOLE, "Node is not yet READY! Skipping request");
-					return;
-				}
-
-				// transform inputMessage to uniquidCapability
-				UniquidCapability capability = null;
-				try {
-					capability = new UniquidCapability.UniquidCapabilityBuilder()
-							.setResourceID(message.getResourceID())
-							.setAssigner(message.getAssigner())
-							.setAssignee(message.getAssignee())
-							.setRights(Hex.decode(message.getRights()))
-							.setSince(message.getSince())
-							.setUntil(message.getUntil())
-							.setAssignerSignature(message.getAssignerSignature())
-							.build();
-				} catch (Exception e) {
-					LOGGER.error(CONSOLE, "Error creating capability: ", e);
-				}
-
-				try {
-					// tell node to receive provider capability
-					node.receiveProviderCapability(capability);
-				} catch (NodeException e) {
-					LOGGER.error(CONSOLE, "Error receiving provider capability: ", e);
-				}
-			}
-		});
-		simplifier.startListener(listener);
-
-		
 		// Register shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			
