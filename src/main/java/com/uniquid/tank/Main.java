@@ -2,6 +2,8 @@ package com.uniquid.tank;
 
 import com.uniquid.connector.Connector;
 import com.uniquid.connector.impl.MQTTConnector;
+import com.uniquid.core.Listener;
+import com.uniquid.core.impl.DefaultRequestHandler;
 import com.uniquid.core.impl.UniquidSimplifier;
 import com.uniquid.messages.AnnounceMessage;
 import com.uniquid.node.UniquidNodeState;
@@ -277,14 +279,14 @@ public class Main {
 		//
 		// 3 Create connector: we choose the MQTTConnector implementation
 		//
-		final Connector mqttProviderConnector = new MQTTConnector.Builder()
+		final Connector connector = new MQTTConnector.Builder()
 				.set_broker(appSettings.getMQTTBroker())
 				.set_topic(machineName)
 				.build();
 		
 		// 
 		// 4 Create UniquidSimplifier that wraps registerFactory, connector and uniquidnode
-		final UniquidSimplifier simplifier = new UniquidSimplifier(registerFactory, mqttProviderConnector, uniquidNode);
+		final UniquidSimplifier simplifier = new UniquidSimplifier(registerFactory, uniquidNode);
 		
 		// 5 Register custom functions on slot 34, 35, 36
 		simplifier.addFunction(new TankFunction(), 34);
@@ -300,8 +302,11 @@ public class Main {
 		//
 		// 6 start Uniquid core library: this will init the node, sync on blockchain, and use the provided
 		// registerFactory to interact with the persistence layer
-		simplifier.start();
-		
+		simplifier.syncBlockchain();
+
+		Listener listener = new Listener(connector, new DefaultRequestHandler());
+		simplifier.addListener(listener);
+
 		// Register shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			
