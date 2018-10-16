@@ -196,7 +196,7 @@ public class Main {
 			long creationTime = seed.getCreationTimeSeconds();
 			
 			// we save mnemonics
-			String mnemonics = Utils.join(seed.getMnemonicCode());
+			String mnemonics = Utils.SPACE_JOINER.join(seed.getMnemonicCode());
 			
 			// we prepare the data to save for seedUtils
 			BackupData backupData = new BackupData();

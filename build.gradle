@@ -1,0 +1,44 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+group = 'com.uniquid'
+version = '0.1-RC1-SNAPSHOT'
+
+description = """"""
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+tasks.withType(JavaCompile) {
+	options.encoding = 'UTF-8'
+}
+
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'tank-java-with-dependencies',
+                'Implementation-Version': version,
+                'Main-Class': 'com.uniquid.tank.Main'
+    }
+
+    baseName = project.name
+
+    from {
+        configurations.compile.collect {
+            it.isDirectory() ? it : zipTree(it)
+        }
+    }
+    exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA'
+}
+
+repositories {
+    mavenLocal()
+    maven { url "http://repo.maven.apache.org/maven2" }
+}
+
+dependencies {
+    compile group: 'junit', name: 'junit', version:'4.12'
+    compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.22'
+    compile group: 'org.gmagnotta', name: 'slf4j-jel', version:'0.1-SNAPSHOT'
+    compile group: 'org.gmagnotta', name: 'java-embeddable-logger', version:'0.1-SNAPSHOT'
+    compile group: 'com.uniquid', name: 'java-package', version:'0.1-RC1-SNAPSHOT'
+    compile group: 'com.uniquid', name: 'utils', version:'1.0-SNAPSHOT'
+}
