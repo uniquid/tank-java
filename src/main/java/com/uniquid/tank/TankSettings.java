@@ -107,17 +107,17 @@ public class TankSettings extends AbstractSettings {
         // Select proper NetworkParameters
         NetworkParameters networkParameters = null;
         
-        if (MainNetParams.class.getName().equals(networkParametersProperties)) {
+        if (MainNetParams.get().getId().equals(networkParametersProperties)) {
         		networkParameters  = MainNetParams.get();
-        } else if (TestNet3Params.class.getName().equals(networkParametersProperties)) {
+        } else if (TestNet3Params.get().getId().equals(networkParametersProperties)) {
         		networkParameters = TestNet3Params.get();
-        } else if (RegTestParams.class.getName().equals(networkParametersProperties)) {
+        } else if (RegTestParams.get().getId().equals(networkParametersProperties)) {
 			networkParameters = RegTestParams.get();
-		} else if (UniquidRegTest.class.getName().equals(networkParametersProperties)) {
+		} else if (UniquidRegTest.get().getId().equals(networkParametersProperties)) {
 			networkParameters = UniquidRegTest.get();
-		} else if (UniquidLitecoinTest.class.getName().equals(networkParametersProperties)) {
+		} else if (UniquidLitecoinTest.get().getId().equals(networkParametersProperties)) {
         	networkParameters = UniquidLitecoinTest.get();
-		} else if (UniquidLitecoinRegTest.class.getName().equals(networkParametersProperties)) {
+		} else if (UniquidLitecoinRegTest.get().getId().equals(networkParametersProperties)) {
         	networkParameters = UniquidLitecoinRegTest.get();
 		}
 
