@@ -1,5 +1,6 @@
 apply plugin: 'java'
 apply plugin: 'maven'
+apply plugin: 'idea'
 
 group = 'com.uniquid'
 version = '0.1-RC1-SNAPSHOT'
@@ -10,6 +11,14 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
+}
+
+idea{
+    module{
+        inheritOutputDirs = true
+        outputDir = compileJava.destinationDir
+        testOutputDir = compileTestJava.destinationDir
+    }
 }
 
 jar {
@@ -31,7 +40,7 @@ jar {
 
 repositories {
     mavenLocal()
-    maven { url "http://repo.maven.apache.org/maven2" }
+    mavenCentral()
 }
 
 dependencies {
@@ -39,6 +48,7 @@ dependencies {
     compile group: 'org.slf4j', name: 'slf4j-api', version:'1.7.22'
     compile group: 'org.gmagnotta', name: 'slf4j-jel', version:'0.1-SNAPSHOT'
     compile group: 'org.gmagnotta', name: 'java-embeddable-logger', version:'0.1-SNAPSHOT'
-    compile group: 'com.uniquid', name: 'java-package', version:'0.1-RC1-SNAPSHOT'
-    compile group: 'com.uniquid', name: 'utils', version:'1.0-SNAPSHOT'
+
+    compile project(':uidcore-java:java-package')
+    compile project('utils')
 }
