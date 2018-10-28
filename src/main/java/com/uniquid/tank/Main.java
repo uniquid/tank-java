@@ -1,7 +1,5 @@
 package com.uniquid.tank;
 
-import com.uniquid.connector.Connector;
-import com.uniquid.connector.impl.MQTTConnector;
 import com.uniquid.core.Listener;
 import com.uniquid.core.impl.DefaultRequestHandler;
 import com.uniquid.core.impl.UniquidSimplifier;
@@ -25,6 +23,7 @@ import com.uniquid.utils.StringUtils;
 import org.bitcoinj.core.NetworkParameters;
 import org.bitcoinj.core.Utils;
 import org.bitcoinj.wallet.DeterministicSeed;
+import org.gmagnotta.log.LogEventCollector;
 import org.gmagnotta.log.LogEventWriter;
 import org.gmagnotta.log.LogLevel;
 import org.gmagnotta.log.impl.filesystem.FileSystemLogEventWriter;
@@ -143,7 +142,7 @@ public class Main {
 		if (seedFile.exists() && !seedFile.isDirectory()) {
 			
 			// create a SeedUtils (the wrapper that is able to load/read/decrypt the seed file)
-			SeedUtils<BackupData> seedUtils = new SeedUtils<BackupData>(seedFile);
+			SeedUtils<BackupData> seedUtils = new SeedUtils<>(seedFile);
 			
 			// decrypt the content with the password read from the application setting properties
 			BackupData readData = new BackupData(); 
@@ -205,7 +204,7 @@ public class Main {
 			backupData.setName(machineName);
 			
 			// we construct a seedutils
-			SeedUtils<BackupData> seedUtils = new SeedUtils<BackupData>(seedFile);
+			SeedUtils<BackupData> seedUtils = new SeedUtils<>(seedFile);
 			
 			// now backup mnemonics encrypted on disk
 			seedUtils.saveData(backupData, appSettings.getSeedPassword());
@@ -275,65 +274,60 @@ public class Main {
 			}
 
 		});
-		
-		//
-		// 3 Create connector: we choose the MQTTConnector implementation
-		//
-		final Connector connector = new MQTTConnector.Builder()
-				.set_broker(appSettings.getMQTTBroker())
-				.set_topic(machineName)
-				.build();
-		
+
 		// 
-		// 4 Create UniquidSimplifier that wraps registerFactory, connector and uniquidnode
+		// 3 Create UniquidSimplifier that wraps registerFactory, connector and uniquidnode
 		final UniquidSimplifier simplifier = new UniquidSimplifier(registerFactory, uniquidNode);
 		
-		// 5 Register custom functions on slot 34, 35, 36
+		// 4 Register custom functions on slot 34, 35, 36
 		simplifier.addFunction(new TankFunction(), 34);
 		simplifier.addFunction(new InputFaucetFunction(), 35);
 		simplifier.addFunction(new OutputFaucetFunction(), 36);
 		
-		LOGGER.info(MARKER, "Starting Uniquid library with node: " + machineName);
+		LOGGER.info(MARKER, "Starting Uniquid library with node: {}", machineName);
 		
 		// Set static values for Tank singleton
 		Tank.mqttbroker = appSettings.getMQTTBroker();
 		Tank.tankname = machineName;
 		
 		//
-		// 6 start Uniquid core library: this will init the node, sync on blockchain, and use the provided
+		// 5 start Uniquid core library: this will init the node, sync on blockchain, and use the provided
 		// registerFactory to interact with the persistence layer
 		simplifier.syncBlockchain();
 
-		Listener listener = new Listener(connector, new DefaultRequestHandler());
+		//
+        // 6 start listening messages from MQTT broker
+        //
+        String broker = appSettings.getMQTTBroker();
+        String topic = machineName;
+
+        Listener listener = new Listener(broker, topic, new DefaultRequestHandler());
 		simplifier.addListener(listener);
 
 		// Register shutdown hook
-		Runtime.getRuntime().addShutdownHook(new Thread() {
-			
-			public void run() {
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
 
-				LOGGER.info(MARKER, "Terminating tank");
-				try {
+            LOGGER.info(MARKER, "Terminating tank");
+            try {
 
-					// tell the library to shutdown and close all opened resources
-					simplifier.shutdown();
+                // tell the library to shutdown and close all opened resources
+                simplifier.shutdown();
 
-					// explicitly stop logging
-					for (LogEventWriter writer : org.gmagnotta.log.LogEventCollector.getInstance().getLogEventWriters()) {
+                // explicitly stop logging
+                for (LogEventWriter writer : LogEventCollector.getInstance().getLogEventWriters()) {
 
-						writer.stop();
+                    writer.stop();
 
-					}
+                }
 
-					org.gmagnotta.log.LogEventCollector.getInstance().stop();
+                LogEventCollector.getInstance().stop();
 
-				} catch (Exception ex) {
+            } catch (Exception ex) {
 
-					LOGGER.error("Exception while terminating tank", ex);
+                LOGGER.error("Exception while terminating tank", ex);
 
-				}
-			}
-		});
+            }
+        }));
 		
 		LOGGER.info(MARKER, "Tank ready");
 		
