@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'idea'
 
 group = 'com.uniquid'
-version = '0.1-RC1-SNAPSHOT'
+version = '1.0.0'
 
 description = """"""
 
