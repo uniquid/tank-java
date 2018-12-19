@@ -1,6 +1,5 @@
 apply plugin: 'java'
 apply plugin: 'maven'
-apply plugin: 'idea'
 
 group = 'com.uniquid'
 version = '1.1.0'
@@ -11,14 +10,6 @@ sourceCompatibility = 1.8
 targetCompatibility = 1.8
 tasks.withType(JavaCompile) {
 	options.encoding = 'UTF-8'
-}
-
-idea{
-    module{
-        inheritOutputDirs = true
-        outputDir = compileJava.destinationDir
-        testOutputDir = compileTestJava.destinationDir
-    }
 }
 
 jar {
@@ -50,5 +41,5 @@ dependencies {
 
     compile project(':java-embeddable-logger')
     compile project(':uidcore-java:java-package')
-    compile project('utils')
+    compile project(':uidutils-java')
 }
