@@ -2,14 +2,16 @@ rootProject.name = 'tank-java'
 
 include ':uidcore-java:core'
 include ':uidcore-java:node'
+include ':java-embeddable-logger'
 include ':uidcore-java:register-spi'
 include ':uidcore-java:register-sqlite'
 include ':uidcore-java:java-package'
-include ':utils'
+include ':uidutils-java'
 
 project(':uidcore-java:core').projectDir = "$rootDir/../uidcore-java/core" as File
 project(':uidcore-java:node').projectDir = "$rootDir/../uidcore-java/node" as File
+project(':java-embeddable-logger').projectDir = "$rootDir/../java-embeddable-logger" as File
 project(':uidcore-java:register-spi').projectDir = "$rootDir/../uidcore-java/register-spi" as File
 project(':uidcore-java:register-sqlite').projectDir = "$rootDir/../uidcore-java/register-sqlite" as File
 project(':uidcore-java:java-package').projectDir = "$rootDir/../uidcore-java/java-package" as File
-project(':utils').projectDir = "$rootDir/../uniquid-utils" as File
+project(':uidutils-java').projectDir = "$rootDir/../uidutils-java" as File

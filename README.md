@@ -12,7 +12,7 @@ The Uniquid java tank simulator is a simple application that shows how to use th
 - [bitcoinj](https://github.com/uniquid/bitcoinj/tree/release-0.14-uniquid)
 - [uidcore-java](https://github.com/uniquid/uidcore-java/tree/master)
 - [uniquid-utils](https://github.com/uniquid/uniquid-utils)
-- [JavaEmbeddableLogging](https://github.com/gmagnotta/JavaEmbeddableLogging)
+- [JavaEmbeddableLogging](https://github.com/uniquid/java-embeddable-logger)
 
 ### Getting started
 
