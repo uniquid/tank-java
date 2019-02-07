@@ -12,6 +12,7 @@ import com.uniquid.core.impl.DefaultRequestHandler;
 import com.uniquid.core.impl.UniquidSimplifier;
 import com.uniquid.messages.AnnounceMessage;
 import com.uniquid.node.UniquidNodeState;
+import com.uniquid.node.impl.ChannelKey;
 import com.uniquid.node.impl.UniquidNodeImpl;
 import com.uniquid.node.listeners.EmptyUniquidNodeEventListener;
 import com.uniquid.params.UniquidRegTest;
@@ -44,6 +45,7 @@ import org.slf4j.MarkerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.List;
 import java.util.Properties;
 
 /*
@@ -312,6 +314,32 @@ public class Main {
 
         Listener listener = new Listener(broker, topic, new DefaultRequestHandler());
 		simplifier.addListener(listener);
+
+
+		//
+		// Get contract's keys
+		//
+		System.out.println("Provider channels:");
+		List<ProviderChannel> providerChannels = registerFactory.getProviderRegister().getAllChannels();
+		for (ProviderChannel pChannel : providerChannels) {
+			ChannelKey key = uniquidNode.getChannelKey(pChannel);
+			System.out.println("- Provider address: " + pChannel.getProviderAddress() +
+					"; User address: " + pChannel.getUserAddress() +
+					"; Path: " + pChannel.getPath() +
+					"; Private key: " + key.getPrivateKey() +
+					"; Public key: " + key.getPublicKey());
+		}
+		System.out.println("User channels:");
+		List<UserChannel> userChannels = registerFactory.getUserRegister().getAllUserChannels();
+		for (UserChannel uChannel : userChannels) {
+			ChannelKey key = uniquidNode.getChannelKey(uChannel);
+			System.out.println("- Provider address: " + uChannel.getProviderAddress() +
+					"; User address: " + uChannel.getUserAddress() +
+					"; Path: " + uChannel.getPath() +
+					"; Private key: " + key.getPrivateKey() +
+					"; Public key: " + key.getPublicKey());
+		}
+
 
 		// Register shutdown hook
 		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
