@@ -175,6 +175,7 @@ public class Main {
 					setProviderChainFile(chainFile).
 					setUserChainFile(userChainFile).
 					setRegisterFactory(registerFactory).
+					setRegistryUrl(appSettings.getRegistryUrl()).
 					setNodeName(machineName);
 			
 			uniquidNode = builder.buildFromMnemonic(mnemonic, creationTime);
@@ -190,6 +191,7 @@ public class Main {
 					.setProviderChainFile(chainFile)
 					.setUserChainFile(userChainFile)
 					.setRegisterFactory(registerFactory)
+					.setRegistryUrl(appSettings.getRegistryUrl())
 					.setNodeName(machineName);
 			
 			// ask the builder to create a node with a random seed
