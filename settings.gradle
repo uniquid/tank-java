@@ -1,5 +1,6 @@
 rootProject.name = 'tank-java'
 
+include ':slf4j-jel'
 include ':uidcore-java:core'
 include ':uidcore-java:node'
 include ':java-embeddable-logger'
@@ -8,6 +9,7 @@ include ':uidcore-java:register-sqlite'
 include ':uidcore-java:java-package'
 include ':uidutils-java'
 
+project(':slf4j-jel').projectDir = "$rootDir/../slf4j-jel" as File
 project(':uidcore-java:core').projectDir = "$rootDir/../uidcore-java/core" as File
 project(':uidcore-java:node').projectDir = "$rootDir/../uidcore-java/node" as File
 project(':java-embeddable-logger').projectDir = "$rootDir/../java-embeddable-logger" as File
