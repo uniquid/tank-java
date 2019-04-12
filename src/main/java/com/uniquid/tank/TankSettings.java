@@ -93,6 +93,12 @@ public class TankSettings extends AbstractSettings {
 			"Blockchain peers",
 			"Blockchain peers",
 			"127.0.0.1", new NotEmpty());
+
+	public static final Setting REGISTRY_URL = new Setting(
+			"registry.url",
+			"Registry url",
+			"Registry url",
+			"http://localhost:8060");
 	
 	public TankSettings() throws SettingValidationException, UnknownSettingException {
 		super();
@@ -173,5 +179,9 @@ public class TankSettings extends AbstractSettings {
 	
 	public String getBlockChainPeers() {
 		return getAsString(BC_PEERS);
+	}
+
+	public String getRegistryUrl() {
+		return getAsString(REGISTRY_URL);
 	}
 }
